@@ -1,13 +1,16 @@
-const sharp = require("sharp");
-
 module.exports = async function (context) {
   console.log("Function invoked");
-  console.log("Context keys:", Object.keys(context)); // Debugging
+
+  // Log the entire context object to debug
+  console.log("Context object:", JSON.stringify(context, null, 2));
+
+  // Log method specifically
+  console.log("context.method:", context.method);
 
   if (context.method !== "POST") {
     return {
       status: 405,
-      body: `Only POST requests are allowed. Received ${context.method}`,
+      body: `Only POST requests are supported. Received: ${context.method}`,
     };
   }
 
@@ -15,12 +18,14 @@ module.exports = async function (context) {
   if (!input || input.length === 0) {
     return {
       status: 400,
-      body: "No image data received in the request body.",
+      body: "No image data received in body.",
     };
   }
 
+  const sharp = require("sharp");
+
   try {
-    const blurred = await sharp(Buffer.from(input))
+    const output = await sharp(Buffer.from(input))
       .blur(10)
       .jpeg()
       .toBuffer();
@@ -30,13 +35,13 @@ module.exports = async function (context) {
       headers: {
         "Content-Type": "image/jpeg",
       },
-      body: blurred,
+      body: output,
     };
   } catch (err) {
-    console.error("Error processing image:", err);
+    console.error("Image processing failed:", err);
     return {
       status: 500,
-      body: `Image processing failed: ${err.message}`,
+      body: "Server error: " + err.message,
     };
   }
 };
