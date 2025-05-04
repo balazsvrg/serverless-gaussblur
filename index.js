@@ -1,25 +1,21 @@
-const sharp = require("sharp");
+module.exports = async function (context) {
+  const req = context.request; // ✅ This is how to get the HTTP request
 
-module.exports = async function (context, req) {
+  console.log("Request method:", req.method);
+
   if (req.method !== "POST") {
     return {
       status: 405,
-      body: "Only POST requests are supported.",
+      body: `Only POST requests are supported. Received ${req.method}`,
     };
   }
 
   try {
-    const imageBuffer = req.body;
+    const imageBuffer = await context.request.arrayBuffer(); // ✅ Get raw body
+    const sharp = require("sharp");
 
-    if (!imageBuffer || !imageBuffer.length) {
-      return {
-        status: 400,
-        body: "No image data found in request body.",
-      };
-    }
-
-    const blurredImage = await sharp(imageBuffer)
-      .blur(10) // Gaussian blur
+    const blurredImage = await sharp(Buffer.from(imageBuffer))
+      .blur(10)
       .jpeg()
       .toBuffer();
 
@@ -31,9 +27,10 @@ module.exports = async function (context, req) {
       body: blurredImage,
     };
   } catch (err) {
+    console.error("Error processing image:", err);
     return {
       status: 500,
-      body: `Error processing image: ${err.message}`,
+      body: `Error: ${err.message}`,
     };
   }
 };
