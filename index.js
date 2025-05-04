@@ -1,20 +1,20 @@
+const sharp = require("sharp");
+
 module.exports = async function (context) {
-  const req = context.request; // ✅ This is how to get the HTTP request
-
-  console.log("Request method:", req.method);
-
-  if (req.method !== "POST") {
-    return {
-      status: 405,
-      body: `Only POST requests are supported. Received ${req.method}`,
-    };
-  }
-
   try {
-    const imageBuffer = await context.request.arrayBuffer(); // ✅ Get raw body
-    const sharp = require("sharp");
+    const req = context.request;
+    console.log("Request method:", req.method);
 
-    const blurredImage = await sharp(Buffer.from(imageBuffer))
+    if (req.method !== "POST") {
+      return {
+        status: 405,
+        body: `Only POST requests are supported. Got ${req.method}`,
+      };
+    }
+
+    const imageBuffer = await req.arrayBuffer();
+
+    const blurred = await sharp(Buffer.from(imageBuffer))
       .blur(10)
       .jpeg()
       .toBuffer();
@@ -24,13 +24,13 @@ module.exports = async function (context) {
       headers: {
         "Content-Type": "image/jpeg",
       },
-      body: blurredImage,
+      body: blurred,
     };
   } catch (err) {
-    console.error("Error processing image:", err);
+    console.error("Error in handler:", err);
     return {
       status: 500,
-      body: `Error: ${err.message}`,
+      body: `Internal Server Error: ${err.message}`,
     };
   }
 };
