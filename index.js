@@ -7,12 +7,16 @@ module.exports = async function (context) {
   // Log method specifically
   console.log("context.method:", context.method);
 
-  if (context.method !== "POST") {
+  const method = context.method || context.req?.method;
+  console.log("Effective method:", method);
+
+  if (method !== "POST") {
     return {
       status: 405,
-      body: `Only POST requests are supported. Received: ${context.method}`,
+      body: `Only POST requests are supported. Received: ${method}`
     };
   }
+
 
   const input = context.body;
   if (!input || input.length === 0) {
@@ -33,9 +37,9 @@ module.exports = async function (context) {
     return {
       status: 200,
       headers: {
-        "Content-Type": "image/jpeg",
+        "Content-Type": "image/jpeg"
       },
-      body: output,
+      body: outputBuffer
     };
   } catch (err) {
     console.error("Image processing failed:", err);
