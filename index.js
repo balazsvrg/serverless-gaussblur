@@ -39,8 +39,9 @@ module.exports = async function (context) {
       headers: {
         "Content-Type": "image/jpeg"
       },
-      body: outputBuffer
+      body: output  // ✅ Correct variable
     };
+      
   } catch (err) {
     console.error("Image processing failed:", err);
     return {
